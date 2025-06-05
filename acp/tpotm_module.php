@@ -3,7 +3,7 @@
  *
  * Top Poster Of The Month. An extension for the phpBB Forum Software package.
  *
- * @copyright (c) 2005, 2019, 3Di <https://www.phpbbstudio.com>
+ * @copyright (c) 2005,2017, 3Di
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
@@ -23,14 +23,15 @@ class tpotm_module
 
 	public function main($id, $mode)
 	{
-		global $config, $request, $template, $user, $phpbb_log, $db, $phpbb_root_path;
+		global $config, $request, $template, $user, $phpbb_log, $phpbb_container, $db, $phpbb_root_path;
+
+		$tpotm = $phpbb_container->get('threedi.tpotm.tpotm');
 
 		$rootpath = (defined('PHPBB_USE_BOARD_URL_PATH') && PHPBB_USE_BOARD_URL_PATH) ? generate_board_url() . '/' : $phpbb_root_path;
 
 		$user->add_lang_ext('threedi/tpotm', 'acp_tpotm');
 
 		$this->tpl_name = 'tpotm_body';
-
 		$this->page_title = $user->lang('ACP_TPOTM_TITLE');
 
 		add_form_key('threedi/tpotm');
@@ -74,7 +75,6 @@ class tpotm_module
 			{
 				$styles_installed[] = $rows['style_path'];
 			}
-
 			$db->sql_freeresult($result);
 
 			/**
@@ -110,34 +110,29 @@ class tpotm_module
 
 				/* Log the action and return */
 				$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'TPOTM_LOG_CONFIG_SAVED');
-
 				trigger_error($user->lang('ACP_TPOTM_SETTING_SAVED') . adm_back_link($this->u_action));
 			}
 		}
 
-		$s_errors = !empty($errors);
-
 		$template->assign_vars([
-			'S_ERRORS'				=> $s_errors,
+			'S_ERRORS'				=> ($errors) ? true : false,
+			'ERRORS_MSG'			=> implode('<br /><br />', $errors),
+			'U_ACTION'				=> $this->u_action,
 
-			'ERRORS_MSG'			=> $s_errors ? implode('<br>', $errors) : '',
-
-			'TPOTM_INDEX'			=> (bool) $config['threedi_tpotm_index'],
-			'TPOTM_FORUMS'			=> (bool) $config['threedi_tpotm_forums'],
-			'TPOTM_HALL'			=> (bool) $config['threedi_tpotm_hall'],
+			'TPOTM_INDEX'			=> ($config['threedi_tpotm_index']) ? true : false,
+			'TPOTM_FORUMS'			=> ($config['threedi_tpotm_forums']) ? true : false,
+			'TPOTM_HALL'			=> ($config['threedi_tpotm_hall']) ? true : false,
 			'TPOTM_USERS_PAGE'		=> (int) $config['threedi_tpotm_users_page'],
-			'TPOTM_TTL_MODE'		=> (bool) $config['threedi_tpotm_ttl_mode'],
+			'TPOTM_TTL_MODE'		=> $config['threedi_tpotm_ttl_mode'] ? true : false,
 			'S_TPOTM_TTL_TPE'		=> $time_row_options,
 			'TPOTM_TTL_TPE'			=> (int) $config['threedi_tpotm_ttl_tpe'],
-			'TPOTM_HALL_EPOCH'		=> (bool) $config['threedi_tpotm_since_epoch'],
+			'TPOTM_HALL_EPOCH'		=> ($config['threedi_tpotm_since_epoch']) ? true : false,
 			'TPOTM_TTL'				=> (int) $config['threedi_tpotm_ttl'],
-			'TPOTM_MINIAVATAR'		=> (bool) $config['threedi_tpotm_miniavatar'],
-			'TPOTM_MINIPROFILE'		=> (bool) $config['threedi_tpotm_miniprofile'],
-			'TPOTM_ADM_MODS'		=> (bool) $config['threedi_tpotm_adm_mods'],
-			'TPOTM_FOUNDERS'		=> (bool) $config['threedi_tpotm_founders'],
-			'TPOTM_BANNEDS'			=> (bool) $config['threedi_tpotm_banneds'],
-
-			'U_ACTION'				=> $this->u_action,
+			'TPOTM_MINIAVATAR'		=> ($config['threedi_tpotm_miniavatar']) ? true : false,
+			'TPOTM_MINIPROFILE'		=> ($config['threedi_tpotm_miniprofile']) ? true : false,
+			'TPOTM_ADM_MODS'		=> ($config['threedi_tpotm_adm_mods']) ? true : false,
+			'TPOTM_FOUNDERS'		=> ($config['threedi_tpotm_founders']) ? true : false,
+			'TPOTM_BANNEDS'			=> ($config['threedi_tpotm_banneds']) ? true : false,
 		]);
 	}
 }
