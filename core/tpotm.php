@@ -95,7 +95,7 @@ class tpotm
 	 */
 	public function is_dae()
 	{
-		return $this->is_dae_enabled && $this->config['threedi_default_avatar_extended'] && ($this->auth->acl_get('u_dae_user') || $this->auth->acl_get('a_dae_admin'));
+		return (bool) (($this->is_dae_enabled) && $this->config['threedi_default_avatar_extended']);
 	}
 
 	/**
@@ -125,7 +125,7 @@ class tpotm
 	 */
 	public function is_authed()
 	{
-		return ($this->auth->acl_get('u_allow_tpotm_view') || $this->auth->acl_get('a_tpotm_admin'));
+		return (bool) (($this->auth->acl_get('u_allow_tpotm_view') || $this->auth->acl_get('a_tpotm_admin')));
 	}
 
 	/**
@@ -547,7 +547,7 @@ class tpotm
 			$this->db->sql_freeresult($result);
 
 			/* There is a TPOTM, let's update the DB then */
-			if ( (isset($row['total_posts']) && (int) $row['total_posts'] >= 1) && empty($row['user_tpotm']) )
+			if (is_array($row) && ((int) $row['total_posts'] >= 1) && empty($row['user_tpotm']))
 			{
 				$this->perform_user_reset((int) $row['user_id']);
 			}
