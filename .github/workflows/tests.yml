@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    uses: phpbb-extensions/test-framework/.github/workflows/tests.yml@master
+    uses: phpbb-extensions/test-framework/.github/workflows/tests.yml@3.3.x
     with:
       EXTNAME: threedi/tpotm
       RUN_MYSQL_JOBS: 0
