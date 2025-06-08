@@ -25,14 +25,14 @@ jobs:
         extensions: mbstring, pdo, pdo_mysql, pdo_pgsql, sqlite, intl
         coverage: none
 
-    - name: Install Git
-      run: sudo apt-get update && sudo apt-get install -y git
+    - name: Install unzip and curl
+      run: sudo apt-get update && sudo apt-get install -y unzip curl
 
-    - name: Clone phpBB repository and checkout tag 3.3.15
+    - name: Download and extract phpBB 3.3.15 release
       run: |
-        git clone --depth=1 https://github.com/phpbb/phpbb.git phpbb
-        cd phpbb
-        git checkout tags/3.3.15
+        curl -L -o phpbb.zip https://github.com/phpbb/phpbb/archive/refs/tags/3.3.15.zip
+        unzip phpbb.zip
+        mv phpbb-3.3.15 phpbb
 
     - name: Copy extension into phpBB ext directory
       run: |
@@ -40,22 +40,21 @@ jobs:
         rsync -av --exclude='phpbb' --exclude='.github' --exclude='.git' ./ phpbb/ext/threedi/tpotm/
 
     - name: Install phpBB dependencies
-      run: |
-        cd phpbb
-        composer install --no-interaction --no-progress --ignore-platform-reqs
+      run: composer install --no-interaction --no-progress --ignore-platform-reqs
+      working-directory: phpbb
 
     - name: Run EPV (Extension Pre Validator)
       run: |
-        cd phpbb
         composer require phpbb/epv:dev-master --dev --ignore-platform-reqs
         vendor/bin/EPV.php run --dir=ext/threedi/tpotm/
+      working-directory: phpbb
 
     - name: Run PHP CodeSniffer
       run: |
-        cd phpbb/ext/threedi/tpotm
         if [ -f "phpcs.xml" ]; then
           composer global require "squizlabs/php_codesniffer=*"
           ~/.composer/vendor/bin/phpcs --standard=phpcs.xml .
         else
           echo "No phpcs.xml found, skipping code sniff."
         fi
+      working-directory: phpbb/ext/threedi/tpotm
