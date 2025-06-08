@@ -1,0 +1,71 @@
+name: PHP CI
+
+on:
+  push:
+    branches:
+      - master
+      - '**.x'
+  pull_request:
+    branches:
+      - master
+      - '**.x'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        php-version: [5.4, 5.5, 5.6, 7.0, 7.1, 7.2, nightly]
+        env:
+          - DB=none;NOTESTS=1
+          - DB=mysqli
+          - DB=mysql
+          - DB=mariadb
+          - DB=postgres
+          - DB=sqlite3
+    runs-on: ubuntu-latest
+    env:
+      EXTNAME: "3D-I/tpotm"
+      SNIFF: "1"
+      IMAGE_ICC: "1"
+      EPV: "1"
+      PHPBB_BRANCH: "3.2.x"
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, mysqli, pdo, pdo_mysql, sqlite3, pgsql
+
+      - name: Prepare phpBB
+        run: |
+          travis/prepare-phpbb.sh $EXTNAME $PHPBB_BRANCH
+          cd ../../phpBB3
+          travis/prepare-extension.sh $EXTNAME $PHPBB_BRANCH
+          travis/setup-phpbb.sh $DB ${{ matrix.php-version }} $NOTESTS
+          if [ "$EPV" = "1" ] && [ "$NOTESTS" = "1" ]; then
+            cd phpBB
+            composer remove sami/sami --dev --no-interaction
+            composer require phpbb/epv:dev-master --dev --no-interaction --ignore-platform-reqs
+            cd ../
+          fi
+
+      - name: Setup database
+        run: travis/setup-database.sh $DB ${{ matrix.php-version }} $NOTESTS
+
+      - name: Run code sniffer
+        if: env.SNIFF != '0'
+        run: travis/ext-sniff.sh $DB ${{ matrix.php-version }} $EXTNAME $NOTESTS
+
+      - name: Check image ICC profiles
+        if: env.IMAGE_ICC != '0'
+        run: travis/check-image-icc-profiles.sh $DB ${{ matrix.php-version }} $NOTESTS
+
+      - name: Run EPV
+        if: env.EPV == '1' && env.NOTESTS == '1'
+        run: phpBB/vendor/bin/EPV.php run --dir="phpBB/ext/$EXTNAME/"
+
+      - name: Run PHPUnit tests
+        if: env.NOTESTS != '1'
+        run: phpBB/vendor/bin/phpunit --configuration phpBB/ext/$EXTNAME/travis/phpunit-$DB-travis.xml --bootstrap ./tests/bootstrap.php
