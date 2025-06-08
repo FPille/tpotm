@@ -2,28 +2,14 @@ name: PHPBB Extension CI
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
   pull_request:
-    branches: [master]
+    branches:
+      - master
 
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    outputs:
-      ext-path: phpBB/ext/threedi/tpotm
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Move extension to correct phpBB path
-        run: |
-          mkdir -p phpBB/ext/threedi
-          rsync -a --exclude='phpBB/' --exclude='.git/' --exclude='.github/' ./ phpBB/ext/threedi/tpotm/
-
-      - name: Save EXTNAME as output
-        run: echo "EXTNAME=threedi/tpotm" >> $GITHUB_ENV
-
-  tests:
-    needs: prepare
+  test:
     uses: phpbb-extensions/test-framework/.github/workflows/tests.yml@3.3.x
     with:
       EXTNAME: threedi/tpotm
