@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        php-version: ['7.3', '7.4', '8.0', '8.1', '8.2']
+        php-versions: ['7.4', '8.0', '8.1', '8.2']
 
     steps:
     - name: Checkout repository
@@ -21,40 +21,43 @@ jobs:
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: ${{ matrix.php-version }}
+        php-version: ${{ matrix.php-versions }}
         extensions: mbstring, pdo, pdo_mysql, pdo_pgsql, sqlite, intl
         coverage: none
 
-    - name: Install unzip and git
-      run: sudo apt-get update && sudo apt-get install -y unzip git
+    - name: Install unzip and curl
+      run: sudo apt-get update && sudo apt-get install -y unzip curl
 
-    - name: Download phpBB 3.3.15 release zip
-      run: |
-        curl -L -o phpbb.zip https://github.com/phpbb/phpbb/archive/refs/tags/release-3.3.15.zip
-        unzip phpbb.zip
-        mv phpbb-release-3.3.15 phpbb
+    - name: Download phpBB 3.3.15 Release ZIP
+      run: curl -L -o phpbb.zip https://github.com/phpbb/phpbb/archive/refs/tags/release-3.3.15.zip
+
+    - name: Unzip phpBB release
+      run: unzip phpbb.zip
+
+    - name: Rename extracted phpBB folder
+      run: mv phpbb-release-3.3.15 phpbb
 
     - name: Copy extension into phpBB ext directory
       run: |
         mkdir -p phpbb/ext/threedi/tpotm
         rsync -av --exclude='phpbb' --exclude='.github' --exclude='.git' ./ phpbb/ext/threedi/tpotm/
 
-    - name: Install phpBB dependencies with Composer
+    - name: Install extension dependencies with Composer
       run: composer install --no-interaction --no-progress --ignore-platform-reqs
-      working-directory: phpbb
+      working-directory: phpbb/ext/threedi/tpotm
 
     - name: Run EPV (Extension Pre Validator)
       run: |
+        cd phpbb
         composer require phpbb/epv:dev-master --dev --ignore-platform-reqs
         vendor/bin/EPV.php run --dir=ext/threedi/tpotm/
-      working-directory: phpbb
 
     - name: Run PHP CodeSniffer
       run: |
+        cd phpbb/ext/threedi/tpotm
         if [ -f "phpcs.xml" ]; then
           composer global require "squizlabs/php_codesniffer=*"
           ~/.composer/vendor/bin/phpcs --standard=phpcs.xml .
         else
           echo "No phpcs.xml found, skipping code sniff."
         fi
-      working-directory: phpbb/ext/threedi/tpotm
