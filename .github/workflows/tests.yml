@@ -1,4 +1,4 @@
-name: PHPBB Extension CI
+name: tests
 
 on:
   push:
