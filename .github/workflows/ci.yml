@@ -29,8 +29,8 @@ jobs:
 
       - name: Copy extension into phpBB ext directory
         run: |
-          mkdir -p phpbb/ext/threedi/tpotm
-          cp -r ./* phpbb/ext/threedi/tpotm
+          mkdir -p phpbb/ext/threedi
+          cp -r ext/threedi/tpotm phpbb/ext/threedi/
 
       - name: Install EPV tool for phpBB
         run: |
