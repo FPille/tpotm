@@ -10,7 +10,7 @@
 
 namespace threedi\tpotm\acp;
 
-use \threedi\tpotm\ext;
+use threedi\tpotm\ext;
 
 /**
  * Top Poster Of The Month ACP module.
