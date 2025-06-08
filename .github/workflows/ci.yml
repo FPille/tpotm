@@ -13,8 +13,8 @@ jobs:
     with:
       EXTNAME: threedi/tpotm
       PHPBB_BRANCH: '3.3.x'
-      PRIMARY_PHP_VERSION: '7.1'
-      PHP_VERSION_MATRIX: '["7.1","7.2","7.3","7.4","8.0","8.1"]'
+      PRIMARY_PHP_VERSION: '8.1'
+      PHP_VERSION_MATRIX: '["7.3","7.4","8.0","8.1"]'
       EPV: 1
       SNIFF: 1
       RUN_MYSQL_JOBS: 0
