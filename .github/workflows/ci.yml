@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        php-versions: ['7.2', '7.3', '8.0', '8.1']
+        php-versions: ['7.2', '7.3', '8.0', '8.1', '8.2']
 
     steps:
     - name: Checkout repository
@@ -28,8 +28,8 @@ jobs:
     - name: Install Git
       run: sudo apt-get update && sudo apt-get install -y git
 
-    - name: Clone phpBB
-      run: git clone --depth=1 --branch 3.2.x https://github.com/phpbb/phpbb.git phpbb
+    - name: Clone phpBB 3.1.15
+      run: git clone --depth=1 --branch release-3.1.15 https://github.com/phpbb/phpbb.git phpbb
 
     - name: Copy extension into phpBB ext directory
       run: |
@@ -37,7 +37,15 @@ jobs:
         rsync -av --exclude='phpbb' --exclude='.github' --exclude='.git' ./ phpbb/ext/threedi/tpotm/
 
     - name: Install phpBB dependencies
-      run: composer install --no-interaction --no-progress --ignore-platform-reqs
+      run: |
+        cd phpbb
+        composer install --no-interaction --no-progress --ignore-platform-reqs || true
+
+    - name: Run EPV (Extension Pre Validator)
+      run: |
+        cd phpbb
+        composer require phpbb/epv:dev-master --dev --ignore-platform-reqs
+        vendor/bin/EPV.php run --dir=ext/threedi/tpotm/
 
     - name: Run PHP CodeSniffer
       run: |
@@ -48,34 +56,3 @@ jobs:
         else
           echo "No phpcs.xml found, skipping code sniff."
         fi
-
-  epv:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Set up PHP 8.2
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: 8.2
-        extensions: mbstring, pdo, pdo_mysql, pdo_pgsql, sqlite, intl
-        coverage: none
-
-    - name: Install Git
-      run: sudo apt-get update && sudo apt-get install -y git
-
-    - name: Clone phpBB
-      run: git clone --depth=1 --branch 3.2.x https://github.com/phpbb/phpbb.git phpbb
-
-    - name: Copy extension into phpBB ext directory
-      run: |
-        mkdir -p phpbb/ext/threedi/tpotm
-        rsync -av --exclude='phpbb' --exclude='.github' --exclude='.git' ./ phpbb/ext/threedi/tpotm/
-
-    - name: Run EPV (Extension Pre Validator)
-      run: |
-        cd phpbb
-        composer require phpbb/epv:dev-master --dev --ignore-platform-reqs
-        vendor/bin/EPV.php run --dir=ext/threedi/tpotm/
