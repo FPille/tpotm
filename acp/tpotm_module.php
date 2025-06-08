@@ -8,7 +8,7 @@
  *
  */
 
-namespace \threedi\tpotm\acp;
+namespace threedi\tpotm\acp;
 
 use \threedi\tpotm\ext;
 
