@@ -7,32 +7,34 @@ on:
     branches: [master]
 
 jobs:
-  call-tests:
+  prepare:
     runs-on: ubuntu-latest
+    outputs:
+      ext-path: phpBB/ext/threedi/tpotm
     steps:
       - uses: actions/checkout@v3
 
-    # set up directory structure expected by the phpBB test framework
-      - name: Move extension to correct path
+      - name: Move extension to correct phpBB path
         run: |
           mkdir -p phpBB/ext/threedi
-          mv . phpBB/ext/threedi/tpotm
+          rsync -a --exclude='phpBB/' --exclude='.git/' --exclude='.github/' ./ phpBB/ext/threedi/tpotm/
 
-      - name: Set EXTNAME
+      - name: Save EXTNAME as output
         run: echo "EXTNAME=threedi/tpotm" >> $GITHUB_ENV
 
-      - name: Trigger reusable workflow
-        uses: phpbb-extensions/test-framework/.github/workflows/tests.yml@3.3.x
-        with:
-          EXTNAME: threedi/tpotm
-          PHPBB_BRANCH: '3.3.x'
-          PRIMARY_PHP_VERSION: '8.1'
-          PHP_VERSION_MATRIX: '["7.3","7.4","8.0","8.1"]'
-          EPV: 1
-          SNIFF: 1
-          RUN_MYSQL_JOBS: 0
-          RUN_PGSQL_JOBS: 0
-          RUN_MSSQL_JOBS: 0
-          RUN_WINDOWS_JOBS: 0
-          RUN_FUNCTIONAL_TESTS: 0
-          RUN_COMPOSER_INSTALL: 1
+  tests:
+    needs: prepare
+    uses: phpbb-extensions/test-framework/.github/workflows/tests.yml@3.3.x
+    with:
+      EXTNAME: threedi/tpotm
+      PHPBB_BRANCH: '3.3.x'
+      PRIMARY_PHP_VERSION: '8.1'
+      PHP_VERSION_MATRIX: '["7.3","7.4","8.0","8.1"]'
+      EPV: 1
+      SNIFF: 1
+      RUN_MYSQL_JOBS: 0
+      RUN_PGSQL_JOBS: 0
+      RUN_MSSQL_JOBS: 0
+      RUN_WINDOWS_JOBS: 0
+      RUN_FUNCTIONAL_TESTS: 0
+      RUN_COMPOSER_INSTALL: 1
