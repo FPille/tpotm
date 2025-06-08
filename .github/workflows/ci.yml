@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        php-versions: ['7.4', '8.0', '8.1', '8.2']
+        php-versions: ['7.2', '7.3', '8.0', '8.1', '8.2']
 
     steps:
     - name: Checkout repository
@@ -25,12 +25,12 @@ jobs:
         extensions: mbstring, pdo, pdo_mysql, pdo_pgsql, sqlite, intl
         coverage: none
 
-    - name: Install unzip and curl
-      run: sudo apt-get update && sudo apt-get install -y unzip curl
+    - name: Install unzip and git
+      run: sudo apt-get update && sudo apt-get install -y unzip git
 
-    - name: Download and extract phpBB 3.3.15 release
+    - name: Download phpBB 3.3.15 release zip
       run: |
-        curl -L -o phpbb.zip https://github.com/phpbb/phpbb/archive/refs/tags/3.3.15.zip
+        curl -L -o phpbb.zip https://github.com/phpbb/phpbb/releases/download/3.3.15/phpbb-3.3.15.zip
         unzip phpbb.zip
         mv phpbb-3.3.15 phpbb
 
@@ -51,10 +51,9 @@ jobs:
 
     - name: Run PHP CodeSniffer
       run: |
-        if [ -f "phpcs.xml" ]; then
+        if [ -f "phpbb/ext/threedi/tpotm/phpcs.xml" ]; then
           composer global require "squizlabs/php_codesniffer=*"
-          ~/.composer/vendor/bin/phpcs --standard=phpcs.xml .
+          ~/.composer/vendor/bin/phpcs --standard=phpbb/ext/threedi/tpotm/phpcs.xml phpbb/ext/threedi/tpotm/
         else
           echo "No phpcs.xml found, skipping code sniff."
         fi
-      working-directory: phpbb/ext/threedi/tpotm
