@@ -17,8 +17,7 @@ jobs:
       - name: Prepare extension directory
         run: |
           mkdir -p phpBB/ext/threedi/tpotm
-          shopt -s extglob dotglob
-          cp -r !(phpBB|.git|.github) phpBB/ext/threedi/tpotm/
+          rsync -a --exclude 'phpBB/' --exclude '.git/' --exclude '.github/' ./ phpBB/ext/threedi/tpotm/
 
   call-tests:
     needs: prepare-extension
