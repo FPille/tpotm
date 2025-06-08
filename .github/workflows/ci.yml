@@ -17,8 +17,8 @@ jobs:
       - name: Prepare extension directory
         run: |
           mkdir -p phpBB/ext/threedi/tpotm
-          shopt -s extglob
-          cp -r !(phpBB) phpBB/ext/threedi/tpotm/
+          cp -r * phpBB/ext/threedi/tpotm/
+          cp -r .[^.]* phpBB/ext/threedi/tpotm/ || true
 
   call-tests:
     needs: prepare-extension
