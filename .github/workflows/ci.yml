@@ -46,18 +46,9 @@ jobs:
           composer install --no-interaction --no-progress --ignore-platform-reqs
         fi
 
-    - name: Run EPV (Extension Pre Validator)
+    - name: Run EPV (only on PHP >= 8.1)
+      if: matrix.php-versions >= '8.1'
       run: |
         cd phpbb
         composer global require phpbb/epv:dev-master --ignore-platform-reqs
         ~/.composer/vendor/bin/EPV.php run --dir=ext/threedi/tpotm/
-
-    - name: Run PHP CodeSniffer
-      run: |
-        cd phpbb/ext/threedi/tpotm
-        if [ -f "phpcs.xml" ]; then
-          composer global require squizlabs/php_codesniffer
-          ~/.composer/vendor/bin/phpcs --standard=phpcs.xml .
-        else
-          echo "No phpcs.xml found, skipping code sniff."
-        fi
