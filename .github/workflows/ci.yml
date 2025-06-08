@@ -24,24 +24,29 @@ jobs:
           extensions: mbstring, intl, pdo_sqlite
           coverage: none
 
-      - name: Clone phpBB
+      - name: Clone phpBB repository
         run: git clone --depth=1 --branch=3.2.x https://github.com/phpbb/phpbb.git phpbb
 
-      - name: Set up phpBB
+      - name: Copy extension into phpBB ext directory
         run: |
-          cd phpbb
-          composer install --no-interaction --no-progress
-          mkdir -p ext/threedi
-          cp -r ../* ext/threedi/tpotm
+          mkdir -p phpbb/ext/threedi
+          cp -r ./* phpbb/ext/threedi/tpotm
 
-      - name: Run EPV
+      - name: Install EPV tool for phpBB
         run: |
           cd phpbb
           composer require phpbb/epv:dev-master --dev --no-interaction --ignore-platform-reqs
+
+      - name: Run Extension Pre Validator (EPV)
+        run: |
+          cd phpbb
           vendor/bin/EPV.php run --dir="ext/threedi/tpotm" || true
 
-      - name: Run PHP Lint
-        run: find . -name '*.php' -not -path "./phpbb/vendor/*" -exec php -l {} \;
+      - name: Install extension dependencies via Composer
+        run: composer install --no-interaction --no-progress --working-dir=phpbb/ext/threedi/tpotm
 
-      - name: Validate composer.json
-        run: composer validate --strict
+      - name: Validate extension composer.json
+        run: composer validate --strict --no-interaction --working-dir=phpbb/ext/threedi/tpotm
+
+      - name: Run PHP syntax check
+        run: find phpbb/ext/threedi/tpotm -name '*.php' -exec php -l {} \;
