@@ -7,48 +7,19 @@ on:
     branches: [master]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        php-versions: ['7.1', '7.2', '7.3', '8.0', '8.1', '8.2']
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: ${{ matrix.php-versions }}
-        extensions: mbstring, pdo, pdo_mysql, pdo_pgsql, sqlite, intl
-        coverage: none
-
-    - name: Install unzip
-      run: sudo apt-get update && sudo apt-get install -y unzip
-
-    - name: Download phpBB 3.3.15
-      run: curl -L -o phpbb.zip https://github.com/phpbb/phpbb/archive/refs/tags/release-3.3.15.zip
-
-    - name: Unzip phpBB
-      run: unzip phpbb.zip && mv phpbb-release-3.3.15 phpbb
-
-    - name: Copy extension into phpBB ext directory
-      run: |
-        mkdir -p phpbb/ext/threedi/tpotm
-        rsync -av --exclude='phpbb' --exclude='.github' --exclude='.git' ./ phpbb/ext/threedi/tpotm/
-
-    - name: Install extension dependencies (if any)
-      run: |
-        cd phpbb/ext/threedi/tpotm
-        if [ -f composer.json ]; then
-          composer install --no-interaction --no-progress --ignore-platform-reqs
-        fi
-
-    - name: Run EPV (only on PHP >= 8.1)
-      if: matrix.php-versions >= '8.1'
-      run: |
-        cd phpbb
-        composer global require phpbb/epv:dev-master --ignore-platform-reqs
-        ~/.composer/vendor/bin/EPV.php run --dir=ext/threedi/tpotm/
+  call-tests:
+    name: Extension tests
+    uses: phpbb-extensions/test-framework/.github/workflows/tests.yml@3.3.x
+    with:
+      EXTNAME: threedi/tpotm
+      PHPBB_BRANCH: '3.3.x'
+      PRIMARY_PHP_VERSION: '7.1'
+      PHP_VERSION_MATRIX: '["7.1","7.2","7.3","7.4","8.0","8.1"]'
+      EPV: 1
+      SNIFF: 1
+      RUN_MYSQL_JOBS: 0
+      RUN_PGSQL_JOBS: 0
+      RUN_MSSQL_JOBS: 0
+      RUN_WINDOWS_JOBS: 0
+      RUN_FUNCTIONAL_TESTS: 0
+      RUN_COMPOSER_INSTALL: 1
