@@ -13,4 +13,13 @@ jobs:
     uses: phpbb-extensions/test-framework/.github/workflows/tests.yml@3.3.x
     with:
       EXTNAME: threedi/tpotm
+      EPV: 1
+      EXECUTABLE_FILES: 1
+      IMAGE_ICC: 1
+      SNIFF: 1
+      RUN_MYSQL_JOBS: 1
+      RUN_NPM_INSTALL: 0
+      RUN_COMPOSER_INSTALL: 1
+      PRIMARY_PHP_VERSION: '7.3'
+      PHP_VERSION_MATRIX: '["7.3", "7.4", "8.0", "8.1", "8.2"]'
 
