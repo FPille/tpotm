@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        php-versions: ['7.2', '7.3', '7.4', '8.0', '8.1', '8.2']
+        php-versions: ['7.4', '8.0', '8.1', '8.2']
 
     steps:
     - name: Checkout repository
@@ -28,12 +28,15 @@ jobs:
     - name: Install Git
       run: sudo apt-get update && sudo apt-get install -y git
 
-    - name: Clone phpBB 3.3.15
-      run: git clone --depth=1 --branch 3.3.15 https://github.com/phpbb/phpbb.git phpbb
+    - name: Clone phpBB repository and checkout tag 3.3.15
+      run: |
+        git clone --depth=1 https://github.com/phpbb/phpbb.git phpbb
+        cd phpbb
+        git checkout tags/3.3.15
 
     - name: Copy extension into phpBB ext directory
       run: |
-        mkdir -p phpbb/ext/threedi
+        mkdir -p phpbb/ext/threedi/tpotm
         rsync -av --exclude='phpbb' --exclude='.github' --exclude='.git' ./ phpbb/ext/threedi/tpotm/
 
     - name: Install phpBB dependencies
