@@ -1,52 +1,57 @@
-name: phpBB Extension CI
+name: PHPBB Extension CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
+    branches: [master]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        php-version: ['8.0']
-        db-type: [sqlite]
+        php-versions: ['7.2', '7.3', '8.0', '8.1']
 
     steps:
-      - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php-version }}
-          extensions: mbstring, intl, pdo_sqlite
-          coverage: none
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-versions }}
+        extensions: mbstring, pdo, pdo_mysql, pdo_pgsql, sqlite, intl
+        coverage: none
 
-      - name: Clone phpBB repository
-        run: git clone --depth=1 --branch=3.2.x https://github.com/phpbb/phpbb.git phpbb
+    - name: Install Git
+      run: sudo apt-get update && sudo apt-get install -y git
 
-      - name: Copy extension into phpBB ext directory
-        run: |
-          mkdir -p phpbb/ext/threedi
-          cp -r ext/threedi/tpotm phpbb/ext/threedi/
+    - name: Clone phpBB
+      run: git clone --depth=1 --branch 3.2.x https://github.com/phpbb/phpbb.git phpbb
 
-      - name: Install EPV tool for phpBB
-        run: |
-          cd phpbb
-          composer require phpbb/epv:dev-master --dev --no-interaction --ignore-platform-reqs
+    - name: Copy extension into phpBB ext directory
+      run: |
+        mkdir -p phpbb/ext/threedi/tpotm
+        rsync -av --exclude='phpbb' --exclude='.github' --exclude='.git' ./ phpbb/ext/threedi/tpotm/
 
-      - name: Run Extension Pre Validator (EPV)
-        run: |
-          cd phpbb
-          vendor/bin/EPV.php run --dir="ext/threedi/tpotm" || true
+    - name: Install phpBB dependencies
+      working-directory: phpbb
+      run: composer install --no-interaction --no-progress --ignore-platform-reqs
 
-      - name: Install extension dependencies via Composer
-        run: composer install --no-interaction --no-progress --working-dir=phpbb/ext/threedi/tpotm
+    - name: Run EPV (Extension Pre Validator)
+      run: |
+        cd phpbb
+        composer require phpbb/epv:dev-master --dev --ignore-platform-reqs
+        vendor/bin/EPV.php run --dir=ext/threedi/tpotm/
 
-      - name: Validate extension composer.json
-        run: composer validate --strict --no-interaction --working-dir=phpbb/ext/threedi/tpotm
-
-      - name: Run PHP syntax check
-        run: find phpbb/ext/threedi/tpotm -name '*.php' -exec php -l {} \;
+    - name: Run PHP CodeSniffer
+      run: |
+        cd phpbb/ext/threedi/tpotm
+        if [ -f "phpcs.xml" ]; then
+          composer global require "squizlabs/php_codesniffer=*"
+          ~/.composer/vendor/bin/phpcs --standard=phpcs.xml .
+        else
+          echo "No phpcs.xml found, skipping code sniff."
+        fi
