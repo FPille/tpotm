@@ -37,7 +37,6 @@ jobs:
         rsync -av --exclude='phpbb' --exclude='.github' --exclude='.git' ./ phpbb/ext/threedi/tpotm/
 
     - name: Install phpBB dependencies
-      working-directory: phpbb
       run: composer install --no-interaction --no-progress --ignore-platform-reqs
 
     - name: Run EPV (Extension Pre Validator)
