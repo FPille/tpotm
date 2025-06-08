@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        php-versions: ['7.2', '7.3', '8.0', '8.1', '8.2']
+        php-version: ['7.3', '7.4', '8.0', '8.1', '8.2']
 
     steps:
     - name: Checkout repository
@@ -21,7 +21,7 @@ jobs:
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: ${{ matrix.php-versions }}
+        php-version: ${{ matrix.php-version }}
         extensions: mbstring, pdo, pdo_mysql, pdo_pgsql, sqlite, intl
         coverage: none
 
@@ -30,16 +30,16 @@ jobs:
 
     - name: Download phpBB 3.3.15 release zip
       run: |
-        curl -L -o phpbb.zip https://github.com/phpbb/phpbb/releases/download/3.3.15/phpbb-3.3.15.zip
+        curl -L -o phpbb.zip https://github.com/phpbb/phpbb/archive/refs/tags/release-3.3.15.zip
         unzip phpbb.zip
-        mv phpbb-3.3.15 phpbb
+        mv phpbb-release-3.3.15 phpbb
 
     - name: Copy extension into phpBB ext directory
       run: |
         mkdir -p phpbb/ext/threedi/tpotm
         rsync -av --exclude='phpbb' --exclude='.github' --exclude='.git' ./ phpbb/ext/threedi/tpotm/
 
-    - name: Install phpBB dependencies
+    - name: Install phpBB dependencies with Composer
       run: composer install --no-interaction --no-progress --ignore-platform-reqs
       working-directory: phpbb
 
@@ -51,9 +51,10 @@ jobs:
 
     - name: Run PHP CodeSniffer
       run: |
-        if [ -f "phpbb/ext/threedi/tpotm/phpcs.xml" ]; then
+        if [ -f "phpcs.xml" ]; then
           composer global require "squizlabs/php_codesniffer=*"
-          ~/.composer/vendor/bin/phpcs --standard=phpbb/ext/threedi/tpotm/phpcs.xml phpbb/ext/threedi/tpotm/
+          ~/.composer/vendor/bin/phpcs --standard=phpcs.xml .
         else
           echo "No phpcs.xml found, skipping code sniff."
         fi
+      working-directory: phpbb/ext/threedi/tpotm
