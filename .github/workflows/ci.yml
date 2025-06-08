@@ -7,8 +7,21 @@ on:
     branches: [master]
 
 jobs:
+  prepare-extension:
+    runs-on: ubuntu-latest
+    outputs:
+      ext-path: phpBB/ext/threedi/tpotm
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Prepare extension directory
+        run: |
+          mkdir -p phpBB/ext/threedi/tpotm
+          shopt -s extglob
+          cp -r !(phpBB) phpBB/ext/threedi/tpotm/
+
   call-tests:
-    name: Extension tests
+    needs: prepare-extension
     uses: phpbb-extensions/test-framework/.github/workflows/tests.yml@3.3.x
     with:
       EXTNAME: threedi/tpotm
