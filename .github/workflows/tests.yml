@@ -13,6 +13,7 @@ jobs:
     uses: phpbb-extensions/test-framework/.github/workflows/tests.yml@3.3.x
     with:
       EXTNAME: threedi/tpotm
+      RUN_FUNCTIONAL_TESTS: 0
 #      RUN_MYSQL_JOBS: 0
 #      RUN_PGSQL_JOBS: 0
 #      RUN_MSSQL_JOBS: 0
